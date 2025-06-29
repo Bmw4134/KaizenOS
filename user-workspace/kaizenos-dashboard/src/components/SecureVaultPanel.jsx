@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 
 const SecureVaultPanel = () => {
   const [passcode, setPasscode] = useState('');
@@ -16,10 +17,8 @@ const SecureVaultPanel = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (passcode === SECRET_CODE) {
-      alert("Access Granted");
       setAccessGranted(true);
     } else {
-      alert("Access Denied");
       setAccessGranted(false);
     }
   };
@@ -73,108 +72,104 @@ const SecureVaultPanel = () => {
   };
 
   return (
-    <div className="p-4 bg-white rounded shadow-md max-w-md mx-auto">
-      <h2 className="text-xl font-semibold mb-4">Secure Vault Login</h2>
+    <motion.div
+      className="p-6 bg-[#0F1117] rounded-2xl shadow-xl backdrop-blur-md max-w-md mx-auto text-[#E5E7EB]"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <h2 className="text-2xl font-semibold mb-6 text-[#38BDF8]">Secure Vault Login</h2>
       {!accessGranted ? (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="password"
             placeholder="Enter internal passcode"
             value={passcode}
             onChange={(e) => setPasscode(e.target.value)}
-            className="border border-gray-300 rounded px-3 py-2 w-full mb-4"
+            className="border border-gray-600 rounded-2xl px-4 py-3 w-full bg-[#1E2128] text-[#F9FAFB] placeholder-[#A78BFA] focus:outline-none focus:ring-2 focus:ring-[#38BDF8]"
           />
           <button
             type="submit"
-            className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
+            className="bg-[#38BDF8] text-[#0F1117] px-6 py-3 rounded-2xl font-semibold hover:bg-[#22A7F0] transition"
           >
             Access
           </button>
         </form>
       ) : (
         <>
-          <p className="text-green-600 font-semibold mb-4">Access Granted. Vault unlocked.</p>
+          <p className="text-[#22C55E] font-semibold mb-6">Access Granted. Vault unlocked.</p>
           <button
             onClick={addVaultKey}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-4"
+            className="bg-[#38BDF8] text-[#0F1117] px-6 py-3 rounded-2xl font-semibold hover:bg-[#22A7F0] mb-6 transition"
           >
             Add Vault Key
           </button>
           <ul>
             {vaultKeys.map(({ key, id }) => (
-              <li key={id} className="flex justify-between items-center border p-2 rounded mb-2">
-                <span>{key.slice(0, 4)}****{key.slice(-4)}</span>
-                <button
-                  onClick={() => deleteVaultKey(id)}
-                  className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700"
-                >
-                  Delete
-                </button>
+              <li
+                key={id}
+                className="flex justify-between items-center border border-gray-700 p-3 rounded-2xl mb-3 bg-[#1E2128]"
+              >
+                <span className="font-mono tracking-widest">
+                  {aesEnabled && aesKey.trim() !== ''
+                    ? atob(key).slice(0, 4) + '•••••-key-' + atob(key).slice(-4)
+                    : key.slice(0, 4) + '•••••-key-' + key.slice(-4)}
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => editVaultKey(id)}
+                    className="bg-[#A78BFA] text-[#0F1117] px-3 py-1 rounded-2xl font-semibold hover:bg-[#8B6FD1] transition"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => deleteVaultKey(id)}
+                    className="bg-[#F87171] text-[#0F1117] px-3 py-1 rounded-2xl font-semibold hover:bg-[#D65A5A] transition"
+                  >
+                    Delete
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
         </>
       )}
-    <div>
-      <label className="inline-flex items-center mb-4">
-        <input
-          type="checkbox"
-          checked={aesEnabled}
-          onChange={() => setAesEnabled(!aesEnabled)}
-          className="form-checkbox"
-        />
-        <span className="ml-2">Enable AES Encryption</span>
-      </label>
-      {aesEnabled && (
-        <input
-          type="password"
-          placeholder="Enter AES key"
-          value={aesKey}
-          onChange={(e) => setAesKey(e.target.value)}
-          className="border border-gray-300 rounded px-3 py-2 w-full mb-4"
-        />
-      )}
-      <h3 className="text-lg font-semibold mb-2">Vault Keys</h3>
-      <ul>
-        {vaultKeys.map(({ key, id }) => (
-          <li key={id} className="flex justify-between items-center border p-2 rounded mb-2">
-            <span>{aesEnabled && aesKey.trim() !== '' ? atob(key).slice(0, 4) + '****' + atob(key).slice(-4) : key.slice(0, 4) + '****' + key.slice(-4)}</span>
-            <div>
-              <button
-                onClick={() => editVaultKey(id)}
-                className="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 mr-2"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => deleteVaultKey(id)}
-                className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700"
-              >
-                Delete
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
-      <button
-        onClick={addVaultKey}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mt-4"
-      >
-        Add Vault Key
-      </button>
-      <h3 className="text-lg font-semibold mt-6 mb-2">Audit Log</h3>
-      <div className="max-h-32 overflow-y-auto bg-gray-100 p-2 rounded text-sm">
-        {auditLog.length === 0 ? (
-          <p className="text-gray-500">No audit entries yet.</p>
-        ) : (
-          auditLog.map((entry, idx) => (
-            <div key={idx}>
-              [{new Date(entry.timestamp).toLocaleString()}] {entry.action.toUpperCase()} - {aesEnabled && aesKey.trim() !== '' ? atob(entry.key).slice(0, 4) + '****' + atob(entry.key).slice(-4) : entry.key.slice(0, 4) + '****' + entry.key.slice(-4)}
-            </div>
-          ))
+      <div className="mt-6">
+        <label className="inline-flex items-center mb-4 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={aesEnabled}
+            onChange={() => setAesEnabled(!aesEnabled)}
+            className="form-checkbox h-5 w-5 text-[#38BDF8] bg-[#1E2128] border-gray-600 rounded"
+          />
+          <span className="ml-3 text-[#E5E7EB] font-semibold">Enable AES Encryption</span>
+        </label>
+        {aesEnabled && (
+          <input
+            type="password"
+            placeholder="Enter AES key"
+            value={aesKey}
+            onChange={(e) => setAesKey(e.target.value)}
+            className="border border-gray-600 rounded-2xl px-4 py-3 w-full bg-[#1E2128] text-[#F9FAFB] placeholder-[#A78BFA] focus:outline-none focus:ring-2 focus:ring-[#38BDF8]"
+          />
         )}
+        <h3 className="text-xl font-semibold mt-6 mb-4 text-[#A78BFA]">Audit Log</h3>
+        <div className="max-h-40 overflow-y-auto bg-[#1E2128] p-4 rounded-2xl text-sm font-mono text-[#E5E7EB]">
+          {auditLog.length === 0 ? (
+            <p className="text-gray-500">No audit entries yet.</p>
+          ) : (
+            auditLog.map((entry, idx) => (
+              <div key={idx} className="mb-2">
+                [{new Date(entry.timestamp).toLocaleString()}] {entry.action.toUpperCase()} -{' '}
+                {aesEnabled && aesKey.trim() !== ''
+                  ? atob(entry.key).slice(0, 4) + '•••••-key-' + atob(entry.key).slice(-4)
+                  : entry.key.slice(0, 4) + '•••••-key-' + entry.key.slice(-4)}
+              </div>
+            ))
+          )}
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
